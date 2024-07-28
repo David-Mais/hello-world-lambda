@@ -18,6 +18,9 @@
     "env_variables" : { },
     "publish_version" : true,
     "alias" : "${lambdas_alias_name}",
+    "url_config": {
+      "auth_type": "NONE"
+    },
     "logs_expiration" : "${logs_expiration}",
     "snap_start" : "None"
   }
