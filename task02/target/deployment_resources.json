@@ -1,14 +1,14 @@
 {
-  "hello_url" : {
-    "name" : "hello_url",
+  "hello_world" : {
+    "name" : "hello_world",
     "lambda_path" : "/Users/davidmaisuradze/Desktop/hello-world-lambda/task02",
     "version" : "1.0.0",
-    "func_name" : "com.task02.HelloUrl",
+    "func_name" : "com.task02.HelloWorld",
     "deployment_package" : "task02-1.0.0.jar",
     "resource_type" : "lambda",
     "runtime" : "java11",
     "architectures" : [ "x86_64" ],
-    "iam_role_name" : "hello_url-role",
+    "iam_role_name" : "hello_world-role",
     "memory" : 1024,
     "timeout" : 300,
     "subnet_ids" : [ ],
