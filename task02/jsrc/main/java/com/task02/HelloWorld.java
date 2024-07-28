@@ -20,29 +20,20 @@ import java.util.Map;
 @LambdaUrlConfig(
 		authType = AuthType.NONE
 )
-public class HelloWorld implements RequestHandler<Object, Map<String, Object>> {
-	private static final ObjectMapper objectMapper = new ObjectMapper();
-
+public class HelloWorld implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 	@Override
-	public Map<String, Object> handleRequest(Object request, Context context) {
+	public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
 		Map<String, Object> response = new HashMap<>();
 
-		try {
-			Map<String, Object> requestMap = objectMapper.convertValue(request, Map.class);
+		String path = (String) request.get("path");
+		String method = (String) request.get("httpMethod");
 
-			String path = (String) requestMap.get("path");
-			String method = (String) requestMap.get("httpMethod");
-
-			if ("/hello".equals(path) && "GET".equalsIgnoreCase(method)) {
-				response.put("statusCode", 200);
-				response.put("message", "Hello from Lambda");
-			} else {
-				response.put("statusCode", 400);
-				response.put("message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s", path, method));
-			}
-		} catch (Exception e) {
-			response.put("statusCode", 500);
-			response.put("message", "Internal server error.");
+		if (path.contains("/hello") && "GET".equalsIgnoreCase(method)) {
+			response.put("statusCode", 200);
+			response.put("message", "Hello from Lambda");
+		} else {
+			response.put("statusCode", 400);
+			response.put("message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s", path, method));
 		}
 
 		return response;
