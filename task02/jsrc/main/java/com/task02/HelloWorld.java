@@ -20,27 +20,23 @@ import java.util.Map;
 )
 public class HelloWorld implements RequestHandler<Object, Map<String, Object>> {
 
+	@Override
 	public Map<String, Object> handleRequest(Object request, Context context) {
-		System.out.println("Hello from lambda");
-		Map<String, Object> resultMap = new HashMap<>();
+		Map<String, Object> response = new HashMap<>();
 
-		if (request instanceof Map) {
-			Map<String, Object> requestMap = (Map<String, Object>) request;
-			String path = (String) requestMap.get("path");
-			String method = (String) requestMap.get("httpMethod");
+		Map<String, Object> requestMap = (Map<String, Object>) request;
 
-			if ("/hello".equals(path) && "GET".equalsIgnoreCase(method)) {
-				resultMap.put("statusCode", 200);
-				resultMap.put("message", "Hello from Lambda");
-			} else {
-				resultMap.put("statusCode", 400);
-				resultMap.put("message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s", path, method));
-			}
+		String path = (String) requestMap.get("path");
+		String method = (String) requestMap.get("httpMethod");
+
+		if ("/hello".equals(path) && "GET".equals(method)) {
+			response.put("statusCode", 200);
+			response.put("message", "Hello from Lambda");
 		} else {
-			resultMap.put("statusCode", 400);
-			resultMap.put("message", "Invalid request format");
+			response.put("statusCode", 400);
+			response.put("message", String.format("Bad request syntax or unsupported method. Request path: %s. HTTP method: %s", path, method));
 		}
 
-		return resultMap;
+		return response;
 	}
 }
