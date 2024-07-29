@@ -34,7 +34,7 @@ public class HelloWorld implements RequestHandler<Map<String, Object>, String> {
 
 		if (httpMethod.equals("GET") && rawPath.equalsIgnoreCase("/hello")) {
 			response.put("statusCode", 200);
-			response.put("message", "Hello from Lambda!");
+			response.put("message", "Hello from Lambda");
 		} else {
 			response.put("statusCode", 400);
 			response.put(
