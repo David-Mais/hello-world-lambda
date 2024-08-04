@@ -6,6 +6,7 @@ import com.syndicate.deployment.annotations.lambda.LambdaHandler;
 import com.syndicate.deployment.model.RetentionSetting;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @LambdaHandler(lambdaName = "hello_world",
@@ -18,9 +19,9 @@ public class HelloFromLambda implements RequestHandler<Object, Map<String, Objec
 
 	public Map<String, Object> handleRequest(Object request, Context context) {
 		System.out.println("Hello from lambda");
-		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Map<String, Object> resultMap = new LinkedHashMap<>();
 		resultMap.put("statusCode", 200);
-		resultMap.put("body", "Hello from Lambda");
+		resultMap.put("message", "Hello from Lambda");
 		return resultMap;
 	}
 }
