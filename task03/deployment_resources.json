@@ -48,7 +48,7 @@
           "responses": [],
           "integration_responses": [],
           "default_error_pattern": true,
-          "lambda_name": "hello_from_lambda"
+          "lambda_name": "hello_world"
         }
       }
     }
