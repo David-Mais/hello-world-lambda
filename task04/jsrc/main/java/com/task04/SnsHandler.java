@@ -17,7 +17,7 @@ import java.util.Map;
 	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
 )
 @SnsEventSource(
-		targetTopic = "lambda-topic",
+		targetTopic = "lambda_topic",
 		regionScope = RegionScope.DEFAULT
 )
 public class SnsHandler implements RequestHandler<Object, Map<String, Object>> {
