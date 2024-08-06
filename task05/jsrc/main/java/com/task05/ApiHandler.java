@@ -19,6 +19,8 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
+import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.events.DynamoDbTriggerEventSource;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
 import com.syndicate.deployment.annotations.lambda.LambdaUrlConfig;
@@ -51,10 +53,12 @@ import java.util.UUID;
 		resourceType = ResourceType.DYNAMODB_TABLE,
 		name = "Events"
 )
+@EnvironmentVariables(value = {
+		@EnvironmentVariable(key = "region", value = "${region}"),
+		@EnvironmentVariable(key = "target_table", value = "${target_table}")
+})
 public class ApiHandler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
-	private boolean tableExists = false;
 	private final AmazonDynamoDB client = AmazonDynamoDBClientBuilder.defaultClient();
-	private final ObjectMapper mapper = new ObjectMapper();
 	public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
 		LambdaLogger logger = context.getLogger();
 		logger.log("Received request: " + request.toString());
@@ -97,27 +101,6 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			context.getLogger().log("Error: " + e.getMessage());
 			throw new RuntimeException(e);
 		}
-	}
-
-	private boolean doesTableExist(String tableName) {
-		try {
-			DescribeTableRequest request = new DescribeTableRequest().withTableName(tableName);
-			client.describeTable(request);
-			return true;
-		} catch (ResourceNotFoundException e) {
-			return false;
-		}
-	}
-
-	private void createTable() {
-		CreateTableRequest request = new CreateTableRequest()
-				.withTableName("Events")
-				.withKeySchema(new KeySchemaElement("id", KeyType.HASH))
-				.withAttributeDefinitions(new AttributeDefinition("id", ScalarAttributeType.S))
-				.withProvisionedThroughput(new ProvisionedThroughput(5L, 5L));
-
-		client.createTable(request);
-		this.tableExists = true;
 	}
 
 	private Map<String, AttributeValue> convertContentMap(Map<String, String> content) {
