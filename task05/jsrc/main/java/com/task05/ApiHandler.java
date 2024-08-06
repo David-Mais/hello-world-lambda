@@ -57,11 +57,11 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 		logger.log("Received request: " + request.toString());
 		Map<String, Object> response = new HashMap<>();
 
-		if (!doesTableExist("Events")) {
-			createTable();
-			logger.log("Checking if table exists");
-		}
-
+//		if (!doesTableExist("Events")) {
+//			createTable();
+//			logger.log("Checking if table exists");
+//		}
+		createTable();
 
 		try {
 			String id = UUID.randomUUID().toString();
