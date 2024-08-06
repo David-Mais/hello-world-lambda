@@ -40,8 +40,8 @@
     "hash_key_type": "N",
     "sort_key_name": "Category",
     "sort_key_type": "S",
-    "read_capacity": 1000,
-    "write_capacity": 1000,
+    "read_capacity": 10,
+    "write_capacity": 10,
     "global_indexes": [],
     "autoscaling": []
   },
