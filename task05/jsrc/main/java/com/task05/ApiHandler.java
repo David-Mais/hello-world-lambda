@@ -13,6 +13,7 @@ import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import com.amazonaws.services.dynamodbv2.model.PutItemResult;
 import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -66,6 +67,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 
 
 		String createdAt = Instant.now().toString();
+		logger.log("Created at: " + createdAt);
 
 		try {
 			String id = UUID.randomUUID().toString();
@@ -78,10 +80,13 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			item.put("createdAt", new AttributeValue().withS(createdAt));
 			item.put("body", new AttributeValue().withM(convertContentMap(content)));
 
+			logger.log("item: " + item);
+
 			PutItemRequest putItemRequest = new PutItemRequest()
 					.withTableName("Events")
 					.withItem(item);
-			client.putItem(putItemRequest);
+			PutItemResult result = client.putItem(putItemRequest);
+			logger.log("PutItemResult: " + result);
 
 			logger.log("Successfully put item");
 
@@ -93,6 +98,8 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 
 			response.put("statusCode", 201);
 			response.put("event", eventResponse);
+
+			logger.log("Response Map: " + response);
 
 			return response;
 		} catch (Exception e) {
