@@ -1,25 +1,13 @@
 package com.task05;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.PutItemResult;
-import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.events.DynamoDbTriggerEventSource;
@@ -39,7 +27,6 @@ import java.util.UUID;
 @LambdaHandler(lambdaName = "api_handler",
 		roleName = "api_handler-role",
 		isPublishVersion = false,
-//	aliasName = "${lambdas_alias_name}",
 		logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
 )
 @LambdaUrlConfig(
@@ -64,6 +51,9 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 		LambdaLogger logger = context.getLogger();
 		logger.log("Received request: " + request.toString());
 		Map<String, Object> response = new HashMap<>();
+
+		String tableName = System.getenv("target_table");
+		logger.log("Target Table name" + tableName);
 
 
 		String createdAt = Instant.now().toString();
