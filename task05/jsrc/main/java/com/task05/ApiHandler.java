@@ -73,7 +73,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			logger.log("item: " + item);
 
 			PutItemRequest putItemRequest = new PutItemRequest()
-					.withTableName("Events")
+					.withTableName(tableName)
 					.withItem(item);
 			PutItemResult result = client.putItem(putItemRequest);
 			logger.log("PutItemResult: " + result);
