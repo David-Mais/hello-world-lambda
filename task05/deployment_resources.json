@@ -12,6 +12,9 @@
             "dynamodb:PutItem",
             "dynamodb:Batch*",
             "dynamodb:DeleteItem",
+            "dynamodb:DescribeTable",
+            "dynamodb:CreateTable",
+            "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
             "kms:Decrypt"
