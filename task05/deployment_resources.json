@@ -38,8 +38,6 @@
     "resource_type": "dynamodb_table",
     "hash_key_name": "Id",
     "hash_key_type": "N",
-    "sort_key_name": "Category",
-    "sort_key_type": "S",
     "read_capacity": 10,
     "write_capacity": 10,
     "global_indexes": [],
