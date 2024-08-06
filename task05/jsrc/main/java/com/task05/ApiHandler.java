@@ -27,6 +27,7 @@ import com.syndicate.deployment.model.RetentionSetting;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -59,6 +60,8 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 		Map<String, Object> response = new HashMap<>();
 
 
+		String createdAt = Instant.now().toString();
+
 		try {
 			String id = UUID.randomUUID().toString();
 			int principalId = (int) request.get("principalId");
@@ -67,7 +70,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			Map<String, AttributeValue> item = new HashMap<>();
 			item.put("id", new AttributeValue().withS(id));
 			item.put("principalId", new AttributeValue().withN(String.valueOf(principalId)));
-			item.put("createdAt", new AttributeValue().withS(String.valueOf(System.currentTimeMillis())));
+			item.put("createdAt", new AttributeValue().withS(createdAt));
 			item.put("body", new AttributeValue().withM(convertContentMap(content)));
 
 			PutItemRequest putItemRequest = new PutItemRequest()
@@ -77,8 +80,14 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 
 			logger.log("Successfully put item");
 
+			Map<String, Object> eventResponse = new HashMap<>();
+			eventResponse.put("id", id);
+			eventResponse.put("principalId", principalId);
+			eventResponse.put("createdAt", createdAt);
+			eventResponse.put("body", content);
+
 			response.put("statusCode", 201);
-			response.put("event", item);
+			response.put("event", eventResponse);
 
 			return response;
 		} catch (Exception e) {
