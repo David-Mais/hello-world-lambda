@@ -15,6 +15,7 @@ import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.syndicate.deployment.annotations.events.DynamoDbTriggerEventSource;
@@ -52,10 +53,13 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 	private final AmazonDynamoDB client = AmazonDynamoDBClientBuilder.defaultClient();
 	private final ObjectMapper mapper = new ObjectMapper();
 	public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
+		LambdaLogger logger = context.getLogger();
+		logger.log("Received request: " + request.toString());
 		Map<String, Object> response = new HashMap<>();
 
 		if (!doesTableExist("Events")) {
 			createTable();
+			logger.log("Checking if table exists");
 		}
 
 
@@ -74,6 +78,8 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 					.withTableName("Events")
 					.withItem(item);
 			client.putItem(putItemRequest);
+
+			logger.log("Successfully put item");
 
 			response.put("statusCode", 201);
 			response.put("event", item);
