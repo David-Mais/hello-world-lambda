@@ -35,8 +35,6 @@ import java.util.UUID;
 )
 public class ApiHandler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 	private final AmazonDynamoDB client = AmazonDynamoDBClientBuilder.defaultClient();
-	private final DynamoDB dynamoDB = new DynamoDB(client);
-	private final Table table = dynamoDB.getTable("Events");
 	private final ObjectMapper mapper = new ObjectMapper();
 	public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
 		try {
@@ -45,8 +43,8 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			Map<String, String> content = (Map<String, String>) request.get("content");
 
 			Map<String, AttributeValue> item = new HashMap<>();
-			item.put("id", new AttributeValue(id));
-			item.put("principalId", new AttributeValue(String.valueOf(principalId)));
+			item.put("id", new AttributeValue().withS(id));
+			item.put("principalId", new AttributeValue().withN(String.valueOf(principalId)));
 			item.put("createdAt", new AttributeValue().withS(String.valueOf(System.currentTimeMillis())));
 			item.put("body", new AttributeValue().withM(convertContentMap(content)));
 
