@@ -50,6 +50,7 @@ import java.util.UUID;
 		name = "Events"
 )
 public class ApiHandler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
+	private boolean tableExists = false;
 	private final AmazonDynamoDB client = AmazonDynamoDBClientBuilder.defaultClient();
 	private final ObjectMapper mapper = new ObjectMapper();
 	public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
@@ -57,11 +58,9 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 		logger.log("Received request: " + request.toString());
 		Map<String, Object> response = new HashMap<>();
 
-//		if (!doesTableExist("Events")) {
-//			createTable();
-//			logger.log("Checking if table exists");
-//		}
-		createTable();
+		if(!tableExists) {
+			createTable();
+		}
 
 		try {
 			String id = UUID.randomUUID().toString();
@@ -111,6 +110,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 				.withProvisionedThroughput(new ProvisionedThroughput(5L, 5L));
 
 		client.createTable(request);
+		this.tableExists = true;
 	}
 
 	private Map<String, AttributeValue> convertContentMap(Map<String, String> content) {
