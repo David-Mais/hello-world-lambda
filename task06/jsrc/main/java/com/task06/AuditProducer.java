@@ -31,14 +31,14 @@ import java.util.Map;
         targetTable = "Configuration",
         batchSize = 10
 )
-//@DependsOn(name = "Audit", resourceType = ResourceType.DYNAMODB_TABLE)
-//@DependsOn(name = "Configuration", resourceType = ResourceType.DYNAMODB_TABLE)
-//@EnvironmentVariables(value = {
-//        @EnvironmentVariable(key = "region", value = "${region}"),
-//        @EnvironmentVariable(key = "table", value = "${target_table}"),
-//		@EnvironmentVariable(key = "config_table", value = "${config-table}")
-//}
-//)
+@DependsOn(name = "Audit", resourceType = ResourceType.DYNAMODB_TABLE)
+@DependsOn(name = "Configuration", resourceType = ResourceType.DYNAMODB_TABLE)
+@EnvironmentVariables(value = {
+        @EnvironmentVariable(key = "region", value = "${region}"),
+        @EnvironmentVariable(key = "table", value = "${target_table}"),
+		@EnvironmentVariable(key = "config_table", value = "${config-table}")
+}
+)
 public class AuditProducer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
     public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
