@@ -35,7 +35,7 @@ import java.util.Map;
 @DependsOn(name = "Configuration", resourceType = ResourceType.DYNAMODB_TABLE)
 @EnvironmentVariables(value = {
         @EnvironmentVariable(key = "region", value = "${region}"),
-        @EnvironmentVariable(key = "target_table", value = "${target_table}"),
+        @EnvironmentVariable(key = "table", value = "${target_table}"),
 		@EnvironmentVariable(key = "config_table", value = "${config-table}")
 }
 )
@@ -47,7 +47,7 @@ public class AuditProducer implements RequestHandler<Map<String, Object>, Map<St
         logger.log("Request: " + request);
 
 		logger.log("Region: " + System.getenv("region"));
-		logger.log("Target table: " + System.getenv("target_table"));
+		logger.log("Target table: " + System.getenv("table"));
 		logger.log("Config table: " + System.getenv("config_table"));
 
 
