@@ -3,6 +3,8 @@ package com.task06;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
+import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.events.DynamoDbTriggerEventSource;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
 import com.syndicate.deployment.annotations.resources.DependsOn;
@@ -25,13 +27,22 @@ import java.util.Map;
 		targetTable = "Configuration",
 		batchSize = 10
 )
+@EnvironmentVariables(
+		value = {
+				@EnvironmentVariable(key = "region", value = "${region}"),
+				@EnvironmentVariable(key = "target_table", value = "${target_table}"),
+				@EnvironmentVariable(key = "config_table", value = "${config_table}")
+		}
+)
 public class AuditProducer implements RequestHandler<Object, Map<String, Object>> {
 
 	public Map<String, Object> handleRequest(Object request, Context context) {
 		LambdaLogger logger = context.getLogger();
 
 		logger.log("Request: " + request);
-
+		logger.log("Region: " + System.getenv("region"));
+		logger.log("Target table: " + System.getenv("target_table"));
+		logger.log("Config table: " + System.getenv("config_table"));
 
 
 		Map<String, Object> resultMap = new HashMap<String, Object>();
