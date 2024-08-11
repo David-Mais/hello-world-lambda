@@ -20,8 +20,7 @@ import java.util.Map;
 @LambdaHandler(
     lambdaName = "audit_producer",
 	roleName = "audit_producer-role",
-	isPublishVersion = true,
-	aliasName = "${lambdas_alias_name}",
+	isPublishVersion = false,
 	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
 )
 @LambdaUrlConfig(
@@ -58,3 +57,7 @@ public class AuditProducer implements RequestHandler<Object, Map<String, Object>
 		return resultMap;
 	}
 }
+
+/*
+Request: {Records=[{eventID=94376517d82336df6cfc03c3d767da81, eventName=INSERT, eventVersion=1.1, eventSource=aws:dynamodb, awsRegion=eu-central-1, dynamodb={ApproximateCreationDateTime=1.723369798E9, Keys={key={S=CACHE_TTL_SEC}}, NewImage={value={N=3600}, key={S=CACHE_TTL_SEC}}, SequenceNumber=2500000000069903933327, SizeBytes=39, StreamViewType=NEW_AND_OLD_IMAGES}, eventSourceARN=arn:aws:dynamodb:eu-central-1:196241772369:table/cmtr-43e49753-Configuration-test/stream/2024-08-11T09:47:48.547}]}
+*/
