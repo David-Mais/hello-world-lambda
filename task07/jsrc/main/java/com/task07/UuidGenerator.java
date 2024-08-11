@@ -6,7 +6,12 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
+import com.syndicate.deployment.annotations.lambda.LambdaUrlConfig;
+import com.syndicate.deployment.annotations.resources.DependsOn;
+import com.syndicate.deployment.model.ResourceType;
 import com.syndicate.deployment.model.RetentionSetting;
+import com.syndicate.deployment.model.lambda.url.AuthType;
+import com.syndicate.deployment.model.lambda.url.InvokeMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,8 +19,8 @@ import java.util.Map;
 @LambdaHandler(
     lambdaName = "uuid_generator",
 	roleName = "uuid_generator-role",
-	isPublishVersion = true,
-	aliasName = "${lambdas_alias_name}",
+	isPublishVersion = false,
+//	aliasName = "${lambdas_alias_name}",
 	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
 )
 @EnvironmentVariables(
@@ -23,6 +28,14 @@ import java.util.Map;
 				@EnvironmentVariable(key = "region", value = "${region}"),
 				@EnvironmentVariable(key = "target_bucket", value = "${target_bucket}")
 		}
+)
+@DependsOn(
+		name = "uuid_generator",
+		resourceType = ResourceType.CLOUDWATCH_RULE
+)
+@LambdaUrlConfig(
+		authType = AuthType.NONE,
+		invokeMode = InvokeMode.BUFFERED
 )
 public class UuidGenerator implements RequestHandler<Object, Map<String, Object>> {
 
