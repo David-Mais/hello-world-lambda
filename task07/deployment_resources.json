@@ -14,8 +14,12 @@
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "s3:PutObject",
+            "s3:ListBucket",
+            "s3:GetObject"
           ],
+
           "Effect": "Allow",
           "Resource": "*"
         }
