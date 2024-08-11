@@ -37,7 +37,6 @@ import java.util.Map;
 		value = {
 				@EnvironmentVariable(key = "region", value = "${region}"),
 				@EnvironmentVariable(key = "target_table", value = "${target_table}"),
-				@EnvironmentVariable(key = "config_table", value = "${config_table}")
 		}
 )
 public class AuditProducer implements RequestHandler<Object, Map<String, Object>> {

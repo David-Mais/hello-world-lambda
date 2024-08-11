@@ -50,7 +50,7 @@
     ],
     "resource_type": "iam_role"
   },
-  "${config_table}": {
+  "Configuration": {
     "resource_type": "dynamodb_table",
     "hash_key_name": "key",
     "hash_key_type": "S",
