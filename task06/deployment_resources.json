@@ -4,6 +4,10 @@
       "Statement": [
         {
           "Action": [
+            "dynamodb:GetRecords",
+            "dynamodb:GetShardIterator",
+            "dynamodb:DescribeStream",
+            "dynamodb:ListStreams",
             "logs:CreateLogGroup",
             "logs:CreateLogStream",
             "logs:PutLogEvents",
@@ -18,17 +22,6 @@
             "dynamodb:UpdateItem",
             "dynamodb:Scan",
             "dynamodb:DeleteTable",
-            "dynamodb:DescribeStream",
-            "dynamodb:GetRecords",
-            "dynamodb:GetShardIterator",
-            "dynamodb:ListStreams",
-            "ssm:PutParameter",
-            "ssm:GetParameter",
-            "ssm:GetParameters",
-            "kms:Decrypt",
-            "kms:Encrypt",
-            "kms:GenerateDataKey",
-            "kms:ReEncrypt*",
             "s3:GetBucketNotificationConfiguration",
             "s3:PutBucketNotificationConfiguration",
             "s3:GetObject",
