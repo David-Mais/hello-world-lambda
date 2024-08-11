@@ -20,11 +20,7 @@
       "resource_name" : "Configuration",
       "resource_type" : "dynamodb_table"
     } ],
-    "event_sources" : [ {
-      "resource_type" : "dynamodb_trigger",
-      "target_table" : "Configuration",
-      "batch_size" : 10
-    } ],
+    "event_sources" : [ ],
     "env_variables" : {
       "config_table" : "${config-table}",
       "region" : "${region}",

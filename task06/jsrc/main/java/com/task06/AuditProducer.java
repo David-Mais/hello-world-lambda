@@ -28,7 +28,7 @@ import java.util.Map;
         invokeMode = InvokeMode.BUFFERED
 )
 @DynamoDbTriggerEventSource(
-        targetTable = "Configuration",
+        targetTable = "$",
         batchSize = 10
 )
 @DependsOn(name = "Audit", resourceType = ResourceType.DYNAMODB_TABLE)

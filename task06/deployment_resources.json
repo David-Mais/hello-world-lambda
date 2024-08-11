@@ -10,14 +10,29 @@
             "dynamodb:GetItem",
             "dynamodb:Query",
             "dynamodb:PutItem",
-            "dynamodb:Batch*",
+            "dynamodb:BatchGetItem",
+            "dynamodb:BatchWriteItem",
             "dynamodb:DeleteItem",
             "dynamodb:DescribeTable",
             "dynamodb:CreateTable",
-            "dynamodb:DeleteItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:Scan",
+            "dynamodb:DeleteTable",
+            "dynamodb:DescribeStream",
+            "dynamodb:GetRecords",
+            "dynamodb:GetShardIterator",
+            "dynamodb:ListStreams",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt"
+            "ssm:GetParameters",
+            "kms:Decrypt",
+            "kms:Encrypt",
+            "kms:GenerateDataKey",
+            "kms:ReEncrypt*",
+            "s3:GetBucketNotificationConfiguration",
+            "s3:PutBucketNotificationConfiguration",
+            "s3:GetObject",
+            "s3:PutObject"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -37,7 +52,7 @@
     ],
     "resource_type": "iam_role"
   },
-  "${config-table}": {
+  "${config_table}": {
     "resource_type": "dynamodb_table",
     "hash_key_name": "id",
     "hash_key_type": "S",
