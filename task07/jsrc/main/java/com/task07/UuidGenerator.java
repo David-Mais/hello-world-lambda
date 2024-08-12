@@ -20,6 +20,8 @@ import com.syndicate.deployment.model.ResourceType;
 import com.syndicate.deployment.model.RetentionSetting;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -59,10 +61,12 @@ import java.util.UUID;
 public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 	private final AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
 
-
 	public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
-		context.getLogger().log("Request: " + request);
-		final String BUCKET_NAME = "uuid-storage";
+		LambdaLogger logger = context.getLogger();
+		logger.log("Request: " + request);
+
+		final String BUCKET_NAME = System.getenv("target_bucket");
+		logger.log("Bucket name: " + BUCKET_NAME);
 
 		List<String> uuids = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
