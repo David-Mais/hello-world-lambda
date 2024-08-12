@@ -66,14 +66,12 @@ public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<St
 		logger.log("Request: " + request);
 
 		final String BUCKET_NAME = System.getenv("target_bucket");
-		logger.log("Bucket name: " + BUCKET_NAME);
-
 		List<String> uuids = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
 			uuids.add(UUID.randomUUID().toString());
 		}
 
-		String jsonOutput = "{ \"ids\": " + uuids.toString() + " }";
+		String jsonOutput = "{ \"ids\": " + uuids + " }";
 		String isoTime = Instant.now().toString();
 
 		byte[] contentAsBytes = jsonOutput.getBytes(StandardCharsets.UTF_8);
@@ -88,11 +86,6 @@ public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<St
 			context.getLogger().log("Error uploading file to S3: " + e.getMessage());
 		}
 
-		Map<String, Object> response = new HashMap<>();
-		response.put("status", "success");
-		response.put("message", "UUIDs generated and stored successfully");
-		response.put("uuids", uuids);
-
-		return response;
+		return Map.of("status", "success", "message", "UUIDs generated and stored successfully");
 	}
 }
