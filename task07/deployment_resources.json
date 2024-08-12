@@ -48,7 +48,7 @@
           "Action": "s3:PutObject",
           "Principal": "*",
           "Resource": [
-            "arn:aws:s3:::uuid-storage/*"
+            "arn:aws:s3:::${target_bucket}/*"
           ],
           "Effect": "Allow",
           "Sid": "1"
