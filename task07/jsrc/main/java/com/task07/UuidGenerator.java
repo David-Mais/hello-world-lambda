@@ -62,7 +62,7 @@ public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<St
 
 	public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
 		context.getLogger().log("Request: " + request);
-		final String BUCKET_NAME = System.getenv("uuid-storage");
+		final String BUCKET_NAME = "uuid-storage";
 
 		List<String> uuids = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
