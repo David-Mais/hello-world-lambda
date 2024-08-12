@@ -30,7 +30,7 @@ import java.util.Map;
 		}
 )
 @DependsOn(
-		name = "uuid_generator",
+		name = "uuid_trigger",
 		resourceType = ResourceType.CLOUDWATCH_RULE
 )
 @LambdaUrlConfig(
