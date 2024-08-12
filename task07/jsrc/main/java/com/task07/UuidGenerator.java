@@ -47,9 +47,9 @@ import java.util.Map;
 )
 @RuleEventSource(targetRule = "uuid_trigger")
 @S3EventSource(targetBucket = "uuid-storage", events = {"s3:ObjectCreated:*"})
-public class UuidGenerator implements RequestHandler<S3Event, Map<String, Object>> {
+public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
-	public Map<String, Object> handleRequest(S3Event request, Context context) {
+	public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
 		LambdaLogger logger = context.getLogger();
 
 		logger.log("Request: " + request);
