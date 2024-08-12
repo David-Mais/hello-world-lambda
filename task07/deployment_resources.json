@@ -16,10 +16,9 @@
             "ssm:GetParameter",
             "kms:Decrypt",
             "s3:PutObject",
-            "s3:ListBucket",
-            "s3:GetObject"
+            "s3:GetObject",
+            "s3:ListBucket"
           ],
-
           "Effect": "Allow",
           "Resource": "*"
         }
@@ -49,7 +48,7 @@
           "Action": "s3:PutObject",
           "Principal": "*",
           "Resource": [
-            "arn:aws:s3:::${target_bucket}/*"
+            "arn:aws:s3:::uuid-storage/*"
           ],
           "Effect": "Allow",
           "Sid": "1"
@@ -57,10 +56,10 @@
       ]
     },
     "public_access_block": {
-      "block_public_acls": false,
-      "ignore_public_acls": false,
-      "block_public_policy": false,
-      "restrict_public_buckets": false
+      "block_public_acls": true,
+      "ignore_public_acls": true,
+      "block_public_policy": true,
+      "restrict_public_buckets": true
     }
   },
   "uuid_trigger": {

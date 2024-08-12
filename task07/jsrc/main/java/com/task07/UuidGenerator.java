@@ -3,6 +3,7 @@ package com.task07;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.s3.event.S3EventNotification;
 import com.amazonaws.services.s3.model.S3Event;
 import com.syndicate.deployment.annotations.EventSource;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
@@ -24,7 +25,6 @@ import java.util.Map;
     lambdaName = "uuid_generator",
 	roleName = "uuid_generator-role",
 	isPublishVersion = false,
-//	aliasName = "${lambdas_alias_name}",
 	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
 )
 @EnvironmentVariables(
@@ -56,7 +56,7 @@ public class UuidGenerator implements RequestHandler<S3Event, Map<String, Object
 		logger.log("Target bucket: " + System.getenv("target_bucket"));
 
 
-		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Map<String, Object> resultMap = new HashMap<>();
 		resultMap.put("statusCode", 200);
 		resultMap.put("body", "Hello from Lambda");
 		return resultMap;
