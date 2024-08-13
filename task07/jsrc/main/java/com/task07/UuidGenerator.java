@@ -44,6 +44,10 @@ import java.util.UUID;
 				@EnvironmentVariable(key = "target_bucket", value = "${target_bucket}")
 		}
 )
+@LambdaUrlConfig(
+		authType = AuthType.NONE,
+		invokeMode = InvokeMode.BUFFERED
+)
 @DependsOn(
 		name = "uuid_trigger",
 		resourceType = ResourceType.CLOUDWATCH_RULE
@@ -51,10 +55,6 @@ import java.util.UUID;
 @DependsOn(
 		name = "uuid-storage",
 		resourceType = ResourceType.S3_BUCKET
-)
-@LambdaUrlConfig(
-		authType = AuthType.NONE,
-		invokeMode = InvokeMode.BUFFERED
 )
 @RuleEventSource(targetRule = "uuid_trigger")
 @S3EventSource(targetBucket = "uuid-storage", events = {"s3:ObjectCreated:*"})
