@@ -5,10 +5,7 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.event.S3EventNotification;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Event;
-import com.syndicate.deployment.annotations.EventSource;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.events.RuleEventSource;
@@ -20,14 +17,11 @@ import com.syndicate.deployment.model.ResourceType;
 import com.syndicate.deployment.model.RetentionSetting;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -66,10 +60,16 @@ public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<St
 		logger.log("Request: " + request);
 
 		final String BUCKET_NAME = System.getenv("target_bucket");
+		if (BUCKET_NAME == null || BUCKET_NAME.isEmpty()) {
+			logger.log("Error: target_bucket environment variable is not set.");
+			throw new RuntimeException("Environment variable target_bucket is required but not set.");
+		}
+
 		List<String> uuids = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
 			uuids.add(UUID.randomUUID().toString());
 		}
+		logger.log("Generated UUIDs: " + uuids);
 
 		String jsonOutput = "{ \"ids\": " + uuids + " }";
 		String isoTime = Instant.now().toString();
@@ -78,6 +78,7 @@ public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<St
 		ByteArrayInputStream contentsAsStream = new ByteArrayInputStream(contentAsBytes);
 		ObjectMetadata metadata = new ObjectMetadata();
 		metadata.setContentLength(contentAsBytes.length);
+		logger.log("Metadata Generated successfully");
 
 		try {
 			s3Client.putObject(BUCKET_NAME, isoTime, contentsAsStream, metadata);
