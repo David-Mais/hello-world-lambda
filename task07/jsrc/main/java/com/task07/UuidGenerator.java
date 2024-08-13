@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.events.RuleEventSource;
@@ -49,6 +50,7 @@ import java.util.UUID;
 @RuleEventSource(targetRule = "uuid_trigger")
 public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 	private final AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	public Map<String, Object> handleRequest(Map<String, Object> request, Context context) {
 		LambdaLogger logger = context.getLogger();
@@ -66,25 +68,26 @@ public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<St
 		}
 		logger.log("Generated UUIDs: " + uuids);
 
-		String jsonOutput = "{ \"ids\": " + uuids + " }";
+		Map<String, List<String>> jsonMap = Map.of("ids", uuids);
 		String isoTime = Instant.now().toString();
 
-		byte[] contentAsBytes = jsonOutput.getBytes(StandardCharsets.UTF_8);
-		ByteArrayInputStream contentsAsStream = new ByteArrayInputStream(contentAsBytes);
-		ObjectMetadata metadata = new ObjectMetadata();
-		metadata.setContentLength(contentAsBytes.length);
-		logger.log("Metadata Generated successfully");
-
 		try {
-			//checking if file already exists not to create duplicate
-            if (s3Client.doesObjectExist(BUCKET_NAME, isoTime)) {
+			String jsonOutput = objectMapper.writeValueAsString(jsonMap);
+			byte[] contentAsBytes = jsonOutput.getBytes(StandardCharsets.UTF_8);
+			ByteArrayInputStream contentsAsStream = new ByteArrayInputStream(contentAsBytes);
+			ObjectMetadata metadata = new ObjectMetadata();
+			metadata.setContentLength(contentAsBytes.length);
+
+			if (s3Client.doesObjectExist(BUCKET_NAME, isoTime)) {
 				logger.log("File with key " + isoTime + " already exists. Skipping creation.");
 				return Map.of("status", "skipped", "message", "UUID file already exists");
 			}
+
 			s3Client.putObject(BUCKET_NAME, isoTime, contentsAsStream, metadata);
-			context.getLogger().log("Successfully uploaded UUID file to S3 bucket: " + BUCKET_NAME);
+			logger.log("Successfully uploaded UUID file to S3 bucket: " + BUCKET_NAME + " with key: " + isoTime);
 		} catch (Exception e) {
-			context.getLogger().log("Error uploading file to S3: " + e.getMessage());
+			logger.log("Error uploading file to S3: " + e.getMessage());
+			throw new RuntimeException("Failed to upload UUID file to S3 bucket: " + BUCKET_NAME, e);
 		}
 
 		return Map.of("status", "success", "message", "UUIDs generated and stored successfully");
