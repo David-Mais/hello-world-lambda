@@ -46,12 +46,7 @@ import java.util.UUID;
 		name = "uuid_trigger",
 		resourceType = ResourceType.CLOUDWATCH_RULE
 )
-@DependsOn(
-		name = "uuid-storage",
-		resourceType = ResourceType.S3_BUCKET
-)
 @RuleEventSource(targetRule = "uuid_trigger")
-@S3EventSource(targetBucket = "uuid-storage", events = {"s3:ObjectCreated:*"})
 public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 	private final AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
 
@@ -81,6 +76,11 @@ public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<St
 		logger.log("Metadata Generated successfully");
 
 		try {
+			//checking if file already exists not to create duplicate
+            if (s3Client.doesObjectExist(BUCKET_NAME, isoTime)) {
+				logger.log("File with key " + isoTime + " already exists. Skipping creation.");
+				return Map.of("status", "skipped", "message", "UUID file already exists");
+			}
 			s3Client.putObject(BUCKET_NAME, isoTime, contentsAsStream, metadata);
 			context.getLogger().log("Successfully uploaded UUID file to S3 bucket: " + BUCKET_NAME);
 		} catch (Exception e) {
