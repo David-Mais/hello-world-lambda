@@ -69,15 +69,22 @@ public class UuidGenerator implements RequestHandler<Map<String, Object>, Map<St
 		logger.log("Generated UUIDs: " + uuids);
 
 		Map<String, List<String>> jsonMap = Map.of("ids", uuids);
+		String jsonOutput;
+		try {
+			jsonOutput = objectMapper.writeValueAsString(jsonMap);
+		} catch (Exception e) {
+			logger.log("Error serializing UUIDs to JSON: " + e.getMessage());
+			throw new RuntimeException("Failed to serialize UUIDs to JSON", e);
+		}
+
 		String isoTime = Instant.now().toString();
 
-		try {
-			String jsonOutput = objectMapper.writeValueAsString(jsonMap);
-			byte[] contentAsBytes = jsonOutput.getBytes(StandardCharsets.UTF_8);
-			ByteArrayInputStream contentsAsStream = new ByteArrayInputStream(contentAsBytes);
-			ObjectMetadata metadata = new ObjectMetadata();
-			metadata.setContentLength(contentAsBytes.length);
+		byte[] contentAsBytes = jsonOutput.getBytes(StandardCharsets.UTF_8);
+		ByteArrayInputStream contentsAsStream = new ByteArrayInputStream(contentAsBytes);
+		ObjectMetadata metadata = new ObjectMetadata();
+		metadata.setContentLength(contentAsBytes.length);
 
+		try {
 			if (s3Client.doesObjectExist(BUCKET_NAME, isoTime)) {
 				logger.log("File with key " + isoTime + " already exists. Skipping creation.");
 				return Map.of("status", "skipped", "message", "UUID file already exists");
