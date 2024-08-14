@@ -7,56 +7,10 @@
             "logs:CreateLogGroup",
             "logs:CreateLogStream",
             "logs:PutLogEvents",
-            "dynamodb:GetItem",
-            "dynamodb:Query",
-            "dynamodb:PutItem",
-            "dynamodb:UpdateItem",
-            "dynamodb:DeleteItem",
-            "dynamodb:BatchWriteItem",
-            "dynamodb:BatchGetItem",
-            "dynamodb:Scan",
-            "dynamodb:DescribeTable",
-            "sns:Publish",
-            "sns:Subscribe",
-            "sns:ListSubscriptions",
-            "sns:ListTopics",
-            "sns:CreateTopic",
-            "sns:DeleteTopic",
-            "sns:GetTopicAttributes",
-            "sns:SetTopicAttributes",
-            "ssm:PutParameter",
-            "ssm:GetParameter",
-            "ssm:GetParametersByPath",
-            "ssm:DeleteParameter",
-            "kms:Decrypt",
-            "kms:Encrypt",
-            "kms:GenerateDataKey",
-            "iam:PassRole",
-            "cognito-idp:AdminCreateUser",
-            "cognito-idp:AdminDeleteUser",
-            "cognito-idp:AdminInitiateAuth",
-            "cognito-idp:AdminRespondToAuthChallenge",
-            "cognito-idp:AdminSetUserPassword",
-            "cognito-idp:AdminUpdateUserAttributes",
-            "cognito-idp:AdminAddUserToGroup",
-            "cognito-idp:CreateUserPool",
-            "cognito-idp:DescribeUserPool",
-            "cognito-idp:DeleteUserPool",
-            "cognito-idp:UpdateUserPool",
-            "cognito-idp:CreateUserPoolClient",
-            "cognito-idp:DescribeUserPoolClient",
-            "cognito-idp:DeleteUserPoolClient",
-            "cognito-idp:UpdateUserPoolClient",
-            "cognito-idp:CreateIdentityPool",
-            "cognito-idp:DescribeIdentityPool",
-            "cognito-idp:DeleteIdentityPool",
-            "cognito-idp:UpdateIdentityPool",
-            "cognito-idp:ListUsers",
-            "cognito-idp:AdminGetUser",
-            "cognito-idp:GetUser",
-            "sts:AssumeRole",
-            "sts:GetCallerIdentity"
+            "dynamodb:*",
+            "cognito-idp:*"
           ],
+
           "Effect": "Allow",
           "Resource": "*"
         }
@@ -86,9 +40,7 @@
       "email",
       "phone_number"
     ],
-    "sms_configuration": {
-      "sns_caller_arn": "arn:aws:iam::123412341234:role/CognitoSMSRole"
-    },
+    "sms_configuration": {},
     "username_attributes": [],
     "custom_attributes": [],
     "client": {
@@ -117,7 +69,8 @@
           "integration_request_body_template": {},
           "responses": [],
           "integration_responses": [],
-          "default_error_pattern": true
+          "default_error_pattern": true,
+          "enable_proxy": true
         }
       },
       "/signin": {
@@ -130,7 +83,8 @@
           "integration_request_body_template": {},
           "responses": [],
           "integration_responses": [],
-          "default_error_pattern": true
+          "default_error_pattern": true,
+          "enable_proxy": true
         }
       },
       "/tables": {
@@ -143,7 +97,8 @@
           "integration_request_body_template": {},
           "responses": [],
           "integration_responses": [],
-          "default_error_pattern": true
+          "default_error_pattern": true,
+          "enable_proxy": true
         },
         "POST": {
           "authorization_type": "authorizer",
@@ -153,7 +108,8 @@
           "integration_request_body_template": {},
           "responses": [],
           "integration_responses": [],
-          "default_error_pattern": true
+          "default_error_pattern": true,
+          "enable_proxy": true
         }
       },
       "/tables/{tableId}": {
@@ -166,7 +122,8 @@
           "integration_request_body_template": {},
           "responses": [],
           "integration_responses": [],
-          "default_error_pattern": true
+          "default_error_pattern": true,
+          "enable_proxy": true
         }
       },
       "/reservations": {
@@ -179,7 +136,8 @@
           "integration_request_body_template": {},
           "responses": [],
           "integration_responses": [],
-          "default_error_pattern": true
+          "default_error_pattern": true,
+          "enable_proxy": true
         },
         "GET": {
           "authorization_type": "authorizer",
@@ -189,7 +147,8 @@
           "integration_request_body_template": {},
           "responses": [],
           "integration_responses": [],
-          "default_error_pattern": true
+          "default_error_pattern": true,
+          "enable_proxy": true
         }
       }
     },
