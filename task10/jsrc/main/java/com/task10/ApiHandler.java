@@ -183,60 +183,89 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 
 
 	private Map<String, Object> handleSignin(Map<String, Object> event, LambdaLogger logger) {
-		logger.log("signIn was called");
+		logger.log("SignIn process started.");
 		Map<String, Object> response = new HashMap<>();
 		ObjectMapper objectMapper = new ObjectMapper();
 
 		try {
-			Map<String, Object> body = objectMapper.readValue((String) event.get("body"), Map.class);
-			logger.log("signIn was called");
+			// Log the received event
+			logger.log("Received event: " + event.toString());
 
+			// Parse the body from the event
+			Map<String, Object> body = objectMapper.readValue((String) event.get("body"), Map.class);
+			logger.log("Parsed body from event: " + body.toString());
+
+			// Extract and log email and password
 			String email = String.valueOf(body.get("email"));
 			String password = String.valueOf(body.get("password"));
+			logger.log("Extracted email: " + email);
+			logger.log("Extracted password: [PROTECTED]");
 
+			// Validate email and password
 			if (!isEmailValid(email)) {
-				logger.log("Email is invalid");
+				logger.log("Email validation failed for: " + email);
 				throw new Exception("Email is invalid");
 			}
+			logger.log("Email validation passed for: " + email);
 
 			if (!isPasswordValid(password)) {
-				logger.log("Password is invalid");
+				logger.log("Password validation failed.");
 				throw new Exception("Password is invalid");
 			}
+			logger.log("Password validation passed.");
 
+			// Retrieve user pool ID
 			String userPoolId = getUserPoolIdByName(System.getenv("booking_userpool"))
 					.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
+			logger.log("Retrieved user pool ID: " + userPoolId);
 
+			// Retrieve client ID
 			String clientId = getClientIdByUserPoolName(System.getenv("booking_userpool"))
 					.orElseThrow(() -> new IllegalArgumentException("No such client ID"));
+			logger.log("Retrieved client ID: " + clientId);
 
+			// Prepare authentication parameters
 			Map<String, String> authParams = new HashMap<>();
 			authParams.put("USERNAME", email);
 			authParams.put("PASSWORD", password);
-			logger.log("AuthParams" + authParams);
+			logger.log("Authentication parameters: " + authParams.toString());
 
+			// Create and log the AdminInitiateAuthRequest
 			AdminInitiateAuthRequest authRequest = new AdminInitiateAuthRequest()
 					.withAuthFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
 					.withUserPoolId(userPoolId)
 					.withClientId(clientId)
 					.withAuthParameters(authParams);
-			logger.log(authRequest.toString());
+			logger.log("AdminInitiateAuthRequest: " + authRequest.toString());
 
+			// Perform authentication and log the result
 			AdminInitiateAuthResult result = cognitoClient.adminInitiateAuth(authRequest);
-			String accessToken = result.getAuthenticationResult().getIdToken();
-			logger.log("AccessToken: " + accessToken);
+			logger.log("AdminInitiateAuthResult: " + result.toString());
 
-			Map<String, Object> jsonResponse = new HashMap<>();
+			// Check if authentication was successful
+			if (result.getAuthenticationResult() != null) {
+				String accessToken = result.getAuthenticationResult().getIdToken();
+				logger.log("Authentication successful. AccessToken: " + accessToken);
 
-			response.put("statusCode", 200);
-			response.put("body", objectMapper.writeValueAsString(jsonResponse));
-			logger.log("Json Response: " + jsonResponse);
+				// Prepare the response with the access token
+				Map<String, Object> jsonResponse = new HashMap<>();
+				jsonResponse.put("accessToken", accessToken);
+
+				response.put("statusCode", 200);
+				response.put("body", objectMapper.writeValueAsString(jsonResponse));
+				logger.log("Response JSON: " + jsonResponse);
+			} else {
+				logger.log("Authentication failed, no tokens returned.");
+				throw new Exception("Authentication failed, no tokens returned.");
+			}
 		} catch (Exception ex) {
-			logger.log("Exception" + ex);
+			// Log the exception details
+			logger.log("Exception encountered: " + ex.getMessage());
 			response.put("statusCode", 400);
 			response.put("body", ex.getMessage());
 		}
 
+		logger.log("SignIn process completed.");
 		return response;
 	}
 
