@@ -18,9 +18,9 @@ import com.amazonaws.services.cognitoidp.model.UserPoolDescriptionType;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemUtils;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -39,9 +39,15 @@ import com.syndicate.deployment.model.lambda.url.InvokeMode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -85,34 +91,32 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 		String httpMethod = (String) request.get("httpMethod");
 
 		try {
-			switch (path) {
-				case "/signup":
-					if ("POST".equalsIgnoreCase(httpMethod)) {
-						responseMap = handleSignup(request, logger);
-					}
-					break;
-				case "/signin":
-					if ("POST".equalsIgnoreCase(httpMethod)) {
-						responseMap = handleSignin(request, logger);
-					}
-					break;
-				case "/tables":
-					if ("GET".equalsIgnoreCase(httpMethod)) {
-						responseMap = handleGetTables(request);
-					} else if ("POST".equalsIgnoreCase(httpMethod)) {
-						responseMap = handleCreateTable(request);
-					}
-					break;
-				case "/reservations":
-					if ("POST".equalsIgnoreCase(httpMethod)) {
-						responseMap = handleCreateReservation(request);
-					} else if ("GET".equalsIgnoreCase(httpMethod)) {
-						responseMap = handleGetReservations(request);
-					}
-					break;
-				default:
+			if (path.startsWith("/tables") && httpMethod.equalsIgnoreCase("GET")) {
+				// Handle both /tables and /tables/{id}
+				if (path.equals("/tables")) {
+					responseMap = handleGetTables(logger);
+				} else if (path.matches("/tables/\\d+")) {
+					String tableId = path.substring("/tables/".length());
+					responseMap = handleGetTableById(tableId, logger);
+				} else {
 					responseMap.put("statusCode", 400);
-					responseMap.put("body", "Invalid path.");
+					responseMap.put("body", "Invalid table ID.");
+				}
+			} else if (path.startsWith("/tables") && httpMethod.equalsIgnoreCase("POST")) {
+				responseMap = handleCreateTable(request, logger);
+			} else if (path.equals("/signup") && "POST".equalsIgnoreCase(httpMethod)) {
+				responseMap = handleSignup(request, logger);
+			} else if (path.equals("/signin") && "POST".equalsIgnoreCase(httpMethod)) {
+				responseMap = handleSignin(request, logger);
+			} else if (path.equals("/reservations")) {
+				if ("POST".equalsIgnoreCase(httpMethod)) {
+					responseMap = handleCreateReservation(request, logger);
+				} else if ("GET".equalsIgnoreCase(httpMethod)) {
+					responseMap = handleGetReservations(logger);
+				}
+			} else {
+				responseMap.put("statusCode", 400);
+				responseMap.put("body", "Invalid path.");
 			}
 		} catch (Exception e) {
 			logger.log("Error: " + e.getMessage());
@@ -122,6 +126,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 
 		return responseMap;
 	}
+
 
 	private Map<String, Object> handleSignup(Map<String, Object> event, LambdaLogger logger) {
 		Map<String, Object> response = new HashMap<>();
@@ -199,7 +204,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			String email = String.valueOf(body.get("email"));
 			String password = String.valueOf(body.get("password"));
 			logger.log("Extracted email: " + email);
-			logger.log("Extracted password: [PROTECTED]");
+			logger.log("Extracted password: " + password);
 
 			// Validate email and password
 			if (!isEmailValid(email)) {
@@ -228,7 +233,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			Map<String, String> authParams = new HashMap<>();
 			authParams.put("USERNAME", email);
 			authParams.put("PASSWORD", password);
-			logger.log("Authentication parameters: " + authParams.toString());
+			logger.log("Authentication parameters: " + authParams);
 
 			// Create and log the AdminInitiateAuthRequest
 			AdminInitiateAuthRequest authRequest = new AdminInitiateAuthRequest()
@@ -270,78 +275,318 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 	}
 
 
-	private Map<String, Object> handleGetTables(Map<String, Object> request) {
+	private Map<String, Object> handleGetTables(LambdaLogger logger) {
+		logger.log("getTables was called");
 		Map<String, Object> response = new HashMap<>();
-		Table tablesTable = dynamoDB.getTable("Tables");
+		ObjectMapper objectMapper = new ObjectMapper();
 
-		ScanResult scanResult = dynamoDBClient.scan(new ScanRequest().withTableName("Tables"));
-		response.put("statusCode", 200);
-		response.put("body", scanResult.getItems());
-		return response;
-	}
+		try {
+			AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
+					.withRegion(System.getenv("region"))
+					.build();
 
-	private Map<String, Object> handleCreateTable(Map<String, Object> request) {
-		Map<String, Object> response = new HashMap<>();
+			// Scan the DynamoDB table
+			ScanRequest scanRequest = new ScanRequest().withTableName(System.getenv("tables_table"));
+			ScanResult scanResult = ddb.scan(scanRequest);
+			logger.log("ScanResult: " + scanResult.toString());
 
-		Map<String, Object> body = (Map<String, Object>) request.get("body");
+			// Process the scan results
+			List<Map<String, Object>> tables = new ArrayList<>();
+			for (Map<String, AttributeValue> item : scanResult.getItems()) {
+				Map<String, Object> table = new LinkedHashMap<>();
+				table.put("id", Integer.parseInt(item.get("id").getS()));
+				table.put("number", Integer.parseInt(item.get("number").getN()));
+				table.put("places", Integer.parseInt(item.get("places").getN()));
+				table.put("isVip", Boolean.parseBoolean(item.get("isVip").getBOOL().toString()));
+				table.put("minOrder", item.containsKey("minOrder") ? Integer.parseInt(item.get("minOrder").getN()) : null);
+				tables.add(table);
+			}
+			logger.log("Tables List: " + tables.toString());
 
-		Map<String, AttributeValue> item = new HashMap<>();
-		for (Map.Entry<String, Object> entry : body.entrySet()) {
-			item.put(entry.getKey(), convertToAttributeValue(entry.getValue()));
+			// Sort the tables by ID
+			tables.sort(Comparator.comparing(o -> (Integer) o.get("id")));
+
+			// Prepare the response
+			Map<String, Object> jsonResponse = new HashMap<>();
+			jsonResponse.put("tables", tables);
+			logger.log("Response JSON: " + jsonResponse.toString());
+
+			// Set the status code and response body
+			response.put("statusCode", 200);
+			response.put("body", objectMapper.writeValueAsString(jsonResponse));
+		} catch (Exception e) {
+			logger.log("Exception: " + e.getMessage());
+			response.put("statusCode", 400);
+			response.put("body", e.getMessage());
 		}
 
-		PutItemRequest putItemRequest = new PutItemRequest()
-				.withTableName("Tables")
-				.withItem(item);
-
-		dynamoDBClient.putItem(putItemRequest);
-
-		response.put("statusCode", 200);
-		response.put("body", Map.of("id", body.get("id")));
 		return response;
 	}
 
-	private AttributeValue convertToAttributeValue(Object value) {
-		if (value instanceof String) {
-			return new AttributeValue().withS((String) value);
-		} else if (value instanceof Number) {
-			return new AttributeValue().withN(value.toString());
-		} else if (value instanceof Boolean) {
-			return new AttributeValue().withBOOL((Boolean) value);
-		}
-		// Handle other types as needed
-		throw new IllegalArgumentException("Unsupported attribute type: " + value.getClass().getSimpleName());
-	}
-
-	private Map<String, Object> handleCreateReservation(Map<String, Object> request) {
+	private Map<String, Object> handleGetTableById(String tableId, LambdaLogger logger) {
+		logger.log("getTableById was called");
 		Map<String, Object> response = new HashMap<>();
+		ObjectMapper objectMapper = new ObjectMapper();
 
-		Map<String, Object> body = (Map<String, Object>) request.get("body");
+		try {
+			AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
+					.withRegion(System.getenv("region"))
+					.build();
 
-		Map<String, AttributeValue> item = new HashMap<>();
-		for (Map.Entry<String, Object> entry : body.entrySet()) {
-			item.put(entry.getKey(), convertToAttributeValue(entry.getValue()));
+			// Scan the DynamoDB table for all items
+			ScanRequest scanRequest = new ScanRequest().withTableName(System.getenv("tables_table"));
+			ScanResult scanResult = ddb.scan(scanRequest);
+			logger.log("ScanResult: " + scanResult.toString());
+
+			// Initialize an empty map to store the found table
+			Map<String, AttributeValue> table = null;
+
+			// Loop through each item and check if the ID matches the requested tableId
+			for (Map<String, AttributeValue> item : scanResult.getItems()) {
+				int existingId = Integer.parseInt(item.get("id").getS().trim().replaceAll("\"", ""));
+				int requiredId = Integer.parseInt(tableId.trim().replaceAll("\"", ""));
+				if (existingId == requiredId) {
+					table = item;
+					break;
+				}
+			}
+
+			if (table != null) {
+				// Convert the DynamoDB item to a simple map
+				Map<String, Object> jsonResponse = ItemUtils.toSimpleMapValue(table);
+				jsonResponse.replace("id", Integer.parseInt((String) jsonResponse.get("id")));
+
+				logger.log("Found table: " + jsonResponse.toString());
+				response.put("statusCode", 200);
+				response.put("body", objectMapper.writeValueAsString(jsonResponse));
+			} else {
+				logger.log("Table not found with ID: " + tableId);
+				response.put("statusCode", 404);
+				response.put("body", "Table not found");
+			}
+		} catch (Exception e) {
+			logger.log("Exception encountered: " + e.getMessage());
+			response.put("statusCode", 400);
+			response.put("body", e.getMessage());
 		}
 
-		PutItemRequest putItemRequest = new PutItemRequest()
-				.withTableName("Reservations")
-				.withItem(item);
-
-		dynamoDBClient.putItem(putItemRequest);
-
-		response.put("statusCode", 200);
-		response.put("body", Map.of("reservationId", body.get("reservationId")));
 		return response;
 	}
 
-	private Map<String, Object> handleGetReservations(Map<String, Object> request) {
+
+
+	private Map<String, Object> handleCreateTable(Map<String, Object> event, LambdaLogger logger) {
+		logger.log("postTable was called");
 		Map<String, Object> response = new HashMap<>();
-		ScanResult scanResult = dynamoDBClient.scan(new ScanRequest().withTableName("Reservations"));
+		ObjectMapper objectMapper = new ObjectMapper();
+		AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
+				.withRegion(System.getenv("region"))
+				.build();
 
-		response.put("statusCode", 200);
-		response.put("body", scanResult.getItems());
+		try {
+			// Parse the body from the event
+			Map<String, Object> body = objectMapper.readValue((String) event.get("body"), Map.class);
+			logger.log("Request body: " + body.toString());
+
+			// Extract fields from the request body
+			String id = String.valueOf(body.get("id"));
+			int number = (Integer) body.get("number");
+			int places = (Integer) body.get("places");
+			boolean isVip = (Boolean) body.get("isVip");
+			int minOrder = -1;
+			if (body.containsKey("minOrder")) {
+				minOrder = (Integer) body.get("minOrder");
+			}
+
+			// Create a new item to put in the DynamoDB table
+			Item item = new Item()
+					.withString("id", id)
+					.withInt("number", number)
+					.withInt("places", places)
+					.withBoolean("isVip", isVip);
+			if (minOrder != -1) {
+				item.withInt("minOrder", minOrder);
+			}
+			logger.log("DynamoDB item: " + item.toString());
+
+			// Put the item in the DynamoDB table
+			ddb.putItem(System.getenv("tables_table"), ItemUtils.toAttributeValues(item));
+
+			// Prepare the JSON response
+			Map<String, Object> jsonResponse = new HashMap<>();
+			jsonResponse.put("id", Integer.parseInt(id));
+			logger.log("Response JSON: " + jsonResponse.toString());
+
+			// Set the status code and response body
+			response.put("statusCode", 200);
+			response.put("body", objectMapper.writeValueAsString(jsonResponse));
+		} catch (Exception ex) {
+			logger.log("Exception encountered: " + ex.getMessage());
+			response.put("statusCode", 400);
+			response.put("body", ex.getMessage());
+		}
+
 		return response;
 	}
+
+	private Map<String, Object> handleCreateReservation(Map<String, Object> event, LambdaLogger logger) {
+		logger.log("postReservation was called");
+		Map<String, Object> response = new HashMap<>();
+		ObjectMapper objectMapper = new ObjectMapper();
+		AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
+				.withRegion(System.getenv("region"))
+				.build();
+
+		try {
+			// Parse the body from the event
+			Map<String, Object> body = objectMapper.readValue((String) event.get("body"), Map.class);
+			logger.log("Request body: " + body.toString());
+
+			// Extract fields from the request body
+			String reservationId = UUID.randomUUID().toString();
+			String tableNumber = String.valueOf(body.get("tableNumber"));
+			String clientName = String.valueOf(body.get("clientName"));
+			String phoneNumber = String.valueOf(body.get("phoneNumber"));
+			String date = String.valueOf(body.get("date"));
+			String slotTimeStart = String.valueOf(body.get("slotTimeStart"));
+			String slotTimeEnd = String.valueOf(body.get("slotTimeEnd"));
+
+			// Create a new reservation item
+			Item item = new Item()
+					.withString("id", reservationId)
+					.withString("tableNumber", tableNumber)
+					.withString("clientName", clientName)
+					.withString("phoneNumber", phoneNumber)
+					.withString("date", date)
+					.withString("slotTimeStart", slotTimeStart)
+					.withString("slotTimeEnd", slotTimeEnd);
+
+			logger.log("Reservation item: " + item.toString());
+
+			// Check if the table exists
+			if (!doesTaleExist(ddb, System.getenv("tablesTable"), tableNumber, logger)) {
+				response.put("statusCode", 400);
+				response.put("body", "Table does not exist");
+				logger.log("Table does not exist");
+				return response;
+			}
+
+			// Check for overlapping reservations
+			if (isReservationOverlapping(ddb, System.getenv("reservationsTable"), tableNumber, date, slotTimeStart, slotTimeEnd)) {
+				response.put("statusCode", 400);
+				response.put("body", "Reservation overlaps with an existing reservation");
+				logger.log("Reservation overlaps with an existing reservation");
+				return response;
+			}
+
+			// Put the reservation item into DynamoDB
+			ddb.putItem(System.getenv("reservations_table"), ItemUtils.toAttributeValues(item));
+
+			// Prepare the JSON response
+			Map<String, Object> jsonResponse = new HashMap<>();
+			jsonResponse.put("reservationId", reservationId);
+			logger.log("Response JSON: " + jsonResponse);
+
+			// Set the status code and response body
+			response.put("statusCode", 200);
+			response.put("body", objectMapper.writeValueAsString(jsonResponse));
+		} catch (Exception ex) {
+			logger.log("Exception encountered: " + ex.getMessage());
+			response.put("statusCode", 400);
+			response.put("body", ex.getMessage());
+		}
+
+		return response;
+	}
+
+	public boolean doesTaleExist(AmazonDynamoDB ddb, String tableName, String tableNumber, LambdaLogger logger) {
+		ScanResult scanResult = ddb.scan(new ScanRequest().withTableName(tableName));
+
+		for (Map<String, AttributeValue> item : scanResult.getItems()) {
+			if (tableNumber.equals(item.get("number").getN())) {
+				logger.log("Table exists, number: " + tableNumber);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isReservationOverlapping(AmazonDynamoDB ddb, String tableName, String tableNumber, String date, String slotTimeStart, String slotTimeEnd) {
+		ScanResult scanResult = ddb.scan(new ScanRequest().withTableName(tableName));
+		for (Map<String, AttributeValue> item : scanResult.getItems()) {
+			String existingTableNumber = item.get("tableNumber").getS();
+			String existingDate = item.get("date").getS();
+
+			if (tableNumber.equals(existingTableNumber) && date.equals(existingDate)) {
+				String existingSlotTimeStart = item.get("slotTimeStart").getS();
+				String existingSlotTimeEnd = item.get("slotTimeEnd").getS();
+
+				return isTimeOverlapping(slotTimeStart, slotTimeEnd, existingSlotTimeStart, existingSlotTimeEnd);
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isTimeOverlapping(String slotTimeStart, String slotTimeEnd, String existingSlotTimeStart, String existingSlotTimeEnd) {
+
+		LocalTime start = LocalTime.parse(slotTimeStart);
+		LocalTime end = LocalTime.parse(slotTimeEnd);
+		LocalTime existingStart = LocalTime.parse(existingSlotTimeStart);
+		LocalTime existingEnd = LocalTime.parse(existingSlotTimeEnd);
+
+		return (start.isBefore(existingEnd) && end.isAfter(existingStart));
+	}
+
+
+	private Map<String, Object> handleGetReservations(LambdaLogger logger) {
+		logger.log("getReservations was called");
+		Map<String, Object> response = new HashMap<>();
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		try {
+			AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
+					.withRegion(System.getenv("region"))
+					.build();
+
+			// Scan the DynamoDB table for reservations
+			ScanRequest scanRequest = new ScanRequest().withTableName(System.getenv("reservations_table"));
+			ScanResult scanResult = ddb.scan(scanRequest);
+			logger.log("ScanResult: " + scanResult.toString());
+
+			// Process the scan results
+			List<Map<String, Object>> reservations = new ArrayList<>();
+			for (Map<String, AttributeValue> item : scanResult.getItems()) {
+				Map<String, Object> reservation = new LinkedHashMap<>();
+				reservation.put("tableNumber", Integer.parseInt(item.get("tableNumber").getS()));
+				reservation.put("clientName", item.get("clientName").getS());
+				reservation.put("phoneNumber", item.get("phoneNumber").getS());
+				reservation.put("date", item.get("date").getS());
+				reservation.put("slotTimeStart", item.get("slotTimeStart").getS());
+				reservation.put("slotTimeEnd", item.get("slotTimeEnd").getS());
+
+				reservations.add(reservation);
+			}
+
+			logger.log("Reservations: " + reservations.toString());
+
+			// Prepare the JSON response
+			Map<String, Object> jsonResponse = new HashMap<>();
+			jsonResponse.put("reservations", reservations);
+			logger.log("Response JSON: " + jsonResponse.toString());
+
+			// Set the status code and response body
+			response.put("statusCode", 200);
+			response.put("body", objectMapper.writeValueAsString(jsonResponse));
+		} catch (Exception ex) {
+			logger.log("Exception encountered: " + ex.getMessage());
+			response.put("statusCode", 400);
+			response.put("body", ex.getMessage());
+		}
+
+		return response;
+	}
+
 
 	public static boolean isEmailValid(String email) {
 		final String EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
