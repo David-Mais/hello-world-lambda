@@ -43,9 +43,9 @@ import java.util.Map;
 		authType = AuthType.NONE,
 		invokeMode = InvokeMode.BUFFERED
 )
-@DependsOn(name = "Tables", resourceType = ResourceType.DYNAMODB_TABLE)
-@DependsOn(name = "Reservations", resourceType = ResourceType.DYNAMODB_TABLE)
-@DependsOn(name = "simple-booking-userpool", resourceType = ResourceType.COGNITO_USER_POOL)
+@DependsOn(name = "${tables_table}", resourceType = ResourceType.DYNAMODB_TABLE)
+@DependsOn(name = "${reservations_table}", resourceType = ResourceType.DYNAMODB_TABLE)
+@DependsOn(name = "${booking_userpool}", resourceType = ResourceType.COGNITO_USER_POOL)
 @EnvironmentVariables(
 		value = {
 				@EnvironmentVariable(key = "region", value = "${region}"),
