@@ -19,13 +19,9 @@ import java.util.Map;
 @LambdaHandler(
     lambdaName = "api_handler",
 	roleName = "api_handler-role",
-	isPublishVersion = true,
-	aliasName = "${lambdas_alias_name}",
+	layers = {"openmetroclient-layer"},
+	isPublishVersion = false,
 	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
-)
-@LambdaUrlConfig(
-		authType = AuthType.NONE,
-		invokeMode = InvokeMode.BUFFERED
 )
 @LambdaLayer(
 		layerName = "openmetroclient-layer",
@@ -33,6 +29,10 @@ import java.util.Map;
 		runtime = DeploymentRuntime.JAVA11,
 		architectures = {Architecture.ARM64},
 		artifactExtension = ArtifactExtension.ZIP
+)
+@LambdaUrlConfig(
+		authType = AuthType.NONE,
+		invokeMode = InvokeMode.BUFFERED
 )
 public class ApiHandler implements RequestHandler<Map<String, Object>, String> {
 	public String handleRequest(Map<String, Object> request, Context context) {
