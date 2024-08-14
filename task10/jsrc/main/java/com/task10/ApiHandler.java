@@ -143,8 +143,10 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 				throw new Exception("Password is invalid");
 			}
 
+			logger.log("Looking up user pool ID for: " + System.getenv("bookingUserPool"));
 			String userPoolId = getUserPoolIdByName(System.getenv("bookingUserPool"))
 					.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
+			logger.log("Found user pool ID: " + userPoolId);
 
 			AdminCreateUserRequest adminCreateUserRequest = new AdminCreateUserRequest()
 					.withUserPoolId(userPoolId)
@@ -160,8 +162,13 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 					.withPermanent(true);
 			logger.log(adminSetUserPassword.toString());
 
+			logger.log("Creating user in Cognito...");
 			cognitoClient.adminCreateUser(adminCreateUserRequest);
+			logger.log("User created successfully.");
+
+			logger.log("Setting user password...");
 			cognitoClient.adminSetUserPassword(adminSetUserPassword);
+			logger.log("Password set successfully.");
 
 			response.put("statusCode", 200);
 			response.put("body", "User created successfully");
@@ -332,14 +339,23 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 	}
 
 	public Optional<String> getUserPoolIdByName(String userPoolName) {
-		ListUserPoolsRequest listUserPoolsRequest = new ListUserPoolsRequest();
-		ListUserPoolsResult listUserPoolsResult = cognitoClient.listUserPools(listUserPoolsRequest);
+		String nextToken = null;
 
-		for (UserPoolDescriptionType pool : listUserPoolsResult.getUserPools()) {
-			if (pool.getName().equals(userPoolName)) {
-				return Optional.of(pool.getId());
+		do {
+			ListUserPoolsRequest listUserPoolsRequest = new ListUserPoolsRequest()
+					.withMaxResults(60)
+					.withNextToken(nextToken);
+
+			ListUserPoolsResult listUserPoolsResult = cognitoClient.listUserPools(listUserPoolsRequest);
+
+			for (UserPoolDescriptionType pool : listUserPoolsResult.getUserPools()) {
+				if (pool.getName().equals(userPoolName)) {
+					return Optional.of(pool.getId());
+				}
 			}
-		}
+
+			nextToken = listUserPoolsResult.getNextToken();
+		} while (nextToken != null);
 
 		return Optional.empty();
 	}
