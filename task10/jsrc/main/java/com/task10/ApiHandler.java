@@ -68,7 +68,7 @@ import java.util.regex.Pattern;
 		value = {
 				@EnvironmentVariable(key = "region", value = "${region}"),
 				@EnvironmentVariable(key = "tables_table", value = "${tables_table}"),
-				@EnvironmentVariable(key = "reservations_table", value = "$reservations_table}"),
+				@EnvironmentVariable(key = "reservations_table", value = "${reservations_table}"),
 				@EnvironmentVariable(key = "booking_userpool", value = "${booking_userpool}")
 		}
 )
@@ -451,6 +451,14 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			String slotTimeStart = String.valueOf(body.get("slotTimeStart"));
 			String slotTimeEnd = String.valueOf(body.get("slotTimeEnd"));
 
+			// Log and validate the environment variable for the reservations table
+			String reservationsTable = System.getenv("reservations_table");
+			logger.log("Environment variable 'reservations_table': " + reservationsTable);
+
+			if (reservationsTable == null || reservationsTable.isEmpty()) {
+				throw new IllegalArgumentException("Environment variable 'reservations_table' is not set or is empty.");
+			}
+
 			// Create a new reservation item
 			Item item = new Item()
 					.withString("id", reservationId)
@@ -472,7 +480,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			}
 
 			// Check for overlapping reservations
-			if (isReservationOverlapping(ddb, System.getenv("reservations_table"), tableNumber, date, slotTimeStart, slotTimeEnd)) {
+			if (isReservationOverlapping(ddb, reservationsTable, tableNumber, date, slotTimeStart, slotTimeEnd)) {
 				response.put("statusCode", 400);
 				response.put("body", "Reservation overlaps with an existing reservation");
 				logger.log("Reservation overlaps with an existing reservation");
@@ -480,7 +488,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			}
 
 			// Put the reservation item into DynamoDB
-			ddb.putItem(System.getenv("reservations_table"), ItemUtils.toAttributeValues(item));
+			ddb.putItem(reservationsTable, ItemUtils.toAttributeValues(item));
 
 			// Prepare the JSON response
 			Map<String, Object> jsonResponse = new HashMap<>();
