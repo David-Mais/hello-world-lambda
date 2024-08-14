@@ -60,7 +60,8 @@
         "enable_cors": false,
         "POST": {
           "authorization_type": "NONE",
-          "integration_type": "mock",
+          "integration_type": "lambda",
+          "lambda_name": "api_handler",
           "api_key_required": false,
           "method_request_parameters": {},
           "integration_request_body_template": {},
@@ -74,7 +75,8 @@
         "enable_cors": false,
         "POST": {
           "authorization_type": "NONE",
-          "integration_type": "mock",
+          "integration_type": "lambda",
+          "lambda_name": "api_handler",
           "api_key_required": false,
           "method_request_parameters": {},
           "integration_request_body_template": {},
@@ -88,7 +90,8 @@
         "enable_cors": false,
         "GET": {
           "authorization_type": "authorizer",
-          "integration_type": "mock",
+          "integration_type": "lambda",
+          "lambda_name": "api_handler",
           "api_key_required": false,
           "method_request_parameters": {},
           "integration_request_body_template": {},
@@ -99,7 +102,8 @@
         },
         "POST": {
           "authorization_type": "authorizer",
-          "integration_type": "mock",
+          "integration_type": "lambda",
+          "lambda_name": "api_handler",
           "api_key_required": false,
           "method_request_parameters": {},
           "integration_request_body_template": {},
@@ -113,7 +117,8 @@
         "enable_cors": false,
         "GET": {
           "authorization_type": "authorizer",
-          "integration_type": "mock",
+          "integration_type": "lambda",
+          "lambda_name": "api_handler",
           "api_key_required": false,
           "method_request_parameters": {},
           "integration_request_body_template": {},
@@ -127,7 +132,8 @@
         "enable_cors": false,
         "POST": {
           "authorization_type": "authorizer",
-          "integration_type": "mock",
+          "integration_type": "lambda",
+          "lambda_name": "api_handler",
           "api_key_required": false,
           "method_request_parameters": {},
           "integration_request_body_template": {},
@@ -138,7 +144,8 @@
         },
         "GET": {
           "authorization_type": "authorizer",
-          "integration_type": "mock",
+          "integration_type": "lambda",
+          "lambda_name": "api_handler",
           "api_key_required": false,
           "method_request_parameters": {},
           "integration_request_body_template": {},
