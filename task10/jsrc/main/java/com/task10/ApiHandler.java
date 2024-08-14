@@ -464,7 +464,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			logger.log("Reservation item: " + item.toString());
 
 			// Check if the table exists
-			if (!doesTaleExist(ddb, System.getenv("tablesTable"), tableNumber, logger)) {
+			if (!doesTaleExist(ddb, System.getenv("tables_table"), tableNumber, logger)) {
 				response.put("statusCode", 400);
 				response.put("body", "Table does not exist");
 				logger.log("Table does not exist");
@@ -472,7 +472,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			}
 
 			// Check for overlapping reservations
-			if (isReservationOverlapping(ddb, System.getenv("reservationsTable"), tableNumber, date, slotTimeStart, slotTimeEnd)) {
+			if (isReservationOverlapping(ddb, System.getenv("reservations_table"), tableNumber, date, slotTimeStart, slotTimeEnd)) {
 				response.put("statusCode", 400);
 				response.put("body", "Reservation overlaps with an existing reservation");
 				logger.log("Reservation overlaps with an existing reservation");
