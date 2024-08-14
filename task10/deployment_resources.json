@@ -52,7 +52,16 @@
     },
     "username_attributes": [],
     "custom_attributes": [],
-    "client": {}
+    "client": {
+      "client_name": "client-app",
+      "generate_secret": false,
+      "explicit_auth_flows": [
+        "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+        "ALLOW_CUSTOM_AUTH",
+        "ALLOW_USER_SRP_AUTH",
+        "ALLOW_REFRESH_TOKEN_AUTH"
+      ]
+    }
   },
   "task10_api": {
     "resource_type": "api_gateway",
@@ -88,7 +97,7 @@
       "/tables": {
         "enable_cors": false,
         "GET": {
-          "authorization_type": "NONE",
+          "authorization_type": "authorizer",
           "integration_type": "mock",
           "api_key_required": false,
           "method_request_parameters": {},
@@ -98,7 +107,7 @@
           "default_error_pattern": true
         },
         "POST": {
-          "authorization_type": "NONE",
+          "authorization_type": "authorizer",
           "integration_type": "mock",
           "api_key_required": false,
           "method_request_parameters": {},
@@ -111,7 +120,7 @@
       "/tables/{tableId}": {
         "enable_cors": false,
         "GET": {
-          "authorization_type": "NONE",
+          "authorization_type": "authorizer",
           "integration_type": "mock",
           "api_key_required": false,
           "method_request_parameters": {},
@@ -124,7 +133,7 @@
       "/reservations": {
         "enable_cors": false,
         "POST": {
-          "authorization_type": "NONE",
+          "authorization_type": "authorizer",
           "integration_type": "mock",
           "api_key_required": false,
           "method_request_parameters": {},
@@ -134,7 +143,7 @@
           "default_error_pattern": true
         },
         "GET": {
-          "authorization_type": "NONE",
+          "authorization_type": "authorizer",
           "integration_type": "mock",
           "api_key_required": false,
           "method_request_parameters": {},
@@ -147,12 +156,12 @@
     },
     "minimum_compression_size": 0,
     "authorizers": {
-      "api-userpool-authorizer": {
+      "authorizer": {
         "type": "COGNITO_USER_POOLS",
         "identity_source": "method.request.header.Authorization",
         "ttl": 300,
         "user_pools": [
-          "simple-booking-userpool"
+          "${booking_userpool}"
         ]
       }
     }
