@@ -15,6 +15,7 @@
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
+            "sts:AssumeRole",
             "kms:Decrypt"
           ],
           "Effect": "Allow",
