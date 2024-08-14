@@ -5,8 +5,16 @@ import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProviderClientBuilder
 import com.amazonaws.services.cognitoidp.model.AdminCreateUserRequest;
 import com.amazonaws.services.cognitoidp.model.AdminInitiateAuthRequest;
 import com.amazonaws.services.cognitoidp.model.AdminInitiateAuthResult;
+import com.amazonaws.services.cognitoidp.model.AdminSetUserPasswordRequest;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.cognitoidp.model.AuthFlowType;
+import com.amazonaws.services.cognitoidp.model.ListUserPoolClientsRequest;
+import com.amazonaws.services.cognitoidp.model.ListUserPoolClientsResult;
+import com.amazonaws.services.cognitoidp.model.ListUserPoolsRequest;
+import com.amazonaws.services.cognitoidp.model.ListUserPoolsResult;
+import com.amazonaws.services.cognitoidp.model.MessageActionType;
+import com.amazonaws.services.cognitoidp.model.UserPoolClientDescription;
+import com.amazonaws.services.cognitoidp.model.UserPoolDescriptionType;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
@@ -18,6 +26,7 @@ import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
@@ -32,6 +41,9 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @LambdaHandler(
     lambdaName = "api_handler",
@@ -76,12 +88,12 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			switch (path) {
 				case "/signup":
 					if ("POST".equalsIgnoreCase(httpMethod)) {
-						responseMap = handleSignup(request);
+						responseMap = handleSignup(request, logger);
 					}
 					break;
 				case "/signin":
 					if ("POST".equalsIgnoreCase(httpMethod)) {
-						responseMap = handleSignin(request);
+						responseMap = handleSignin(request, logger);
 					}
 					break;
 				case "/tables":
@@ -111,55 +123,116 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 		return responseMap;
 	}
 
-	private Map<String, Object> handleSignup(Map<String, Object> request) {
+	private Map<String, Object> handleSignup(Map<String, Object> event, LambdaLogger logger) {
 		Map<String, Object> response = new HashMap<>();
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			Map<String, Object> body = objectMapper.readValue((String) event.get("body"), Map.class);
+			logger.log("signUp was called");
 
-		Map<String, String> body = (Map<String, String>) request.get("body");
-		String firstName = body.get("firstName");
-		String lastName = body.get("lastName");
-		String email = body.get("email");
-		String password = body.get("password");
+			String email = String.valueOf(body.get("email"));
+			String password = String.valueOf(body.get("password"));
 
-		AdminCreateUserRequest cognitoRequest = new AdminCreateUserRequest()
-				.withUserPoolId(System.getenv("COGNITO_USER_POOL_ID"))
-				.withUsername(email)
-				.withUserAttributes(
-						new AttributeType().withName("given_name").withValue(firstName),
-						new AttributeType().withName("family_name").withValue(lastName),
-						new AttributeType().withName("email").withValue(email)
-				)
-				.withTemporaryPassword(password);
+			if (!isEmailValid(email)) {
+				logger.log("Email is invalid");
+				throw new Exception("Email is invalid");
+			}
 
-		cognitoClient.adminCreateUser(cognitoRequest);
+			if (!isPasswordValid(password)) {
+				logger.log("Password is invalid");
+				throw new Exception("Password is invalid");
+			}
 
-		response.put("statusCode", 200);
-		response.put("body", "Sign-up process is successful");
+			String userPoolId = getUserPoolIdByName(System.getenv("bookingUserPool"))
+					.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
+
+			AdminCreateUserRequest adminCreateUserRequest = new AdminCreateUserRequest()
+					.withUserPoolId(userPoolId)
+					.withUsername(email)
+					.withUserAttributes(new AttributeType().withName("email").withValue(email))
+					.withMessageAction(MessageActionType.SUPPRESS);
+			logger.log("AdminCreateUserRequest: " + adminCreateUserRequest.toString());
+
+			AdminSetUserPasswordRequest adminSetUserPassword = new AdminSetUserPasswordRequest()
+					.withPassword(password)
+					.withUserPoolId(userPoolId)
+					.withUsername(email)
+					.withPermanent(true);
+			logger.log(adminSetUserPassword.toString());
+
+			cognitoClient.adminCreateUser(adminCreateUserRequest);
+			cognitoClient.adminSetUserPassword(adminSetUserPassword);
+
+			response.put("statusCode", 200);
+			response.put("body", "User created successfully");
+
+		} catch (Exception ex) {
+			logger.log(ex.toString());
+			response.put("statusCode", 400);
+			response.put("body", ex.getMessage());
+		}
 		return response;
 	}
 
-	private Map<String, Object> handleSignin(Map<String, Object> request) {
+
+	private Map<String, Object> handleSignin(Map<String, Object> event, LambdaLogger logger) {
+		logger.log("signIn was called");
 		Map<String, Object> response = new HashMap<>();
+		ObjectMapper objectMapper = new ObjectMapper();
 
-		Map<String, String> body = (Map<String, String>) request.get("body");
-		String email = body.get("email");
-		String password = body.get("password");
+		try {
+			Map<String, Object> body = objectMapper.readValue((String) event.get("body"), Map.class);
+			logger.log("signIn was called");
 
-		AdminInitiateAuthRequest authRequest = new AdminInitiateAuthRequest()
-				.withUserPoolId(System.getenv("COGNITO_USER_POOL_ID"))
-				.withClientId(System.getenv("COGNITO_CLIENT_ID"))
-				.withAuthFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
-				.withAuthParameters(Map.of(
-						"USERNAME", email,
-						"PASSWORD", password
-				));
+			String email = String.valueOf(body.get("email"));
+			String password = String.valueOf(body.get("password"));
 
-		AdminInitiateAuthResult authResponse = cognitoClient.adminInitiateAuth(authRequest);
-		String accessToken = authResponse.getAuthenticationResult().getAccessToken();
+			if (!isEmailValid(email)) {
+				logger.log("Email is invalid");
+				throw new Exception("Email is invalid");
+			}
 
-		response.put("statusCode", 200);
-		response.put("body", Map.of("accessToken", accessToken));
+			if (!isPasswordValid(password)) {
+				logger.log("Password is invalid");
+				throw new Exception("Password is invalid");
+			}
+
+			String userPoolId = getUserPoolIdByName(System.getenv("bookingUserPool"))
+					.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
+
+			String clientId = getClientIdByUserPoolName(System.getenv("bookingUserPool"))
+					.orElseThrow(() -> new IllegalArgumentException("No such client ID"));
+
+			Map<String, String> authParams = new HashMap<>();
+			authParams.put("USERNAME", email);
+			authParams.put("PASSWORD", password);
+			logger.log("AuthParams" + authParams);
+
+			AdminInitiateAuthRequest authRequest = new AdminInitiateAuthRequest()
+					.withAuthFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
+					.withUserPoolId(userPoolId)
+					.withClientId(clientId)
+					.withAuthParameters(authParams);
+			logger.log(authRequest.toString());
+
+			AdminInitiateAuthResult result = cognitoClient.adminInitiateAuth(authRequest);
+			String accessToken = result.getAuthenticationResult().getIdToken();
+			logger.log("AccessToken: " + accessToken);
+
+			Map<String, Object> jsonResponse = new HashMap<>();
+
+			response.put("statusCode", 200);
+			response.put("body", objectMapper.writeValueAsString(jsonResponse));
+			logger.log("Json Response: " + jsonResponse);
+		} catch (Exception ex) {
+			logger.log("Exception" + ex);
+			response.put("statusCode", 400);
+			response.put("body", ex.getMessage());
+		}
+
 		return response;
 	}
+
 
 	private Map<String, Object> handleGetTables(Map<String, Object> request) {
 		Map<String, Object> response = new HashMap<>();
@@ -232,5 +305,55 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 		response.put("statusCode", 200);
 		response.put("body", scanResult.getItems());
 		return response;
+	}
+
+	public static boolean isEmailValid(String email) {
+		final String EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
+		final Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+		if (email == null) {
+			return false;
+		}
+
+		Matcher matcher = pattern.matcher(email);
+		return matcher.matches();
+	}
+
+	public static boolean isPasswordValid(String password) {
+		if (password == null) {
+			return false;
+		}
+
+		return password.length() >= 8 &&
+				password.length() <= 20 &&
+				password.matches(".*[A-Z].*") &&
+				password.matches(".*[a-z].*") &&
+				password.matches(".*\\d.*") &&
+				password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+	}
+
+	public Optional<String> getUserPoolIdByName(String userPoolName) {
+		ListUserPoolsRequest listUserPoolsRequest = new ListUserPoolsRequest();
+		ListUserPoolsResult listUserPoolsResult = cognitoClient.listUserPools(listUserPoolsRequest);
+
+		for (UserPoolDescriptionType pool : listUserPoolsResult.getUserPools()) {
+			if (pool.getName().equals(userPoolName)) {
+				return Optional.of(pool.getId());
+			}
+		}
+
+		return Optional.empty();
+	}
+
+	public Optional<String> getClientIdByUserPoolName(String userPoolName) {
+		String userPoolId = getUserPoolIdByName(userPoolName).get();
+
+		ListUserPoolClientsRequest listUserPoolClientsRequest = new ListUserPoolClientsRequest().withUserPoolId(userPoolId);
+		ListUserPoolClientsResult listUserPoolClientsResult = cognitoClient.listUserPoolClients(listUserPoolClientsRequest);
+
+		for (UserPoolClientDescription client : listUserPoolClientsResult.getUserPoolClients()) {
+			return Optional.of(client.getClientId());
+		}
+
+		return Optional.empty();
 	}
 }
