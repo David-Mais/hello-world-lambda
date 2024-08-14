@@ -30,7 +30,7 @@
     "runtimes" : [ "java11" ],
     "resource_type" : "lambda_layer",
     "deployment_package" : "openmetroclient-layer-assembly.zip",
-    "libraries" : [ "" ],
+    "libraries" : [ "lib/task08-1.0.0.jar" ],
     "architectures" : [ "arm64" ]
   }
 }
