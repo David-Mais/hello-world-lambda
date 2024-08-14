@@ -143,8 +143,8 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 				throw new Exception("Password is invalid");
 			}
 
-			logger.log("Looking up user pool ID for: " + System.getenv("bookingUserPool"));
-			String userPoolId = getUserPoolIdByName(System.getenv("bookingUserPool"))
+			logger.log("Looking up user pool ID for: " + System.getenv("booking_userpool"));
+			String userPoolId = getUserPoolIdByName(System.getenv("booking_userpool"))
 					.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
 			logger.log("Found user pool ID: " + userPoolId);
 
@@ -204,10 +204,10 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 				throw new Exception("Password is invalid");
 			}
 
-			String userPoolId = getUserPoolIdByName(System.getenv("bookingUserPool"))
+			String userPoolId = getUserPoolIdByName(System.getenv("booking_userpool"))
 					.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
 
-			String clientId = getClientIdByUserPoolName(System.getenv("bookingUserPool"))
+			String clientId = getClientIdByUserPoolName(System.getenv("booking_userpool"))
 					.orElseThrow(() -> new IllegalArgumentException("No such client ID"));
 
 			Map<String, String> authParams = new HashMap<>();
