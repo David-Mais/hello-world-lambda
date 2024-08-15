@@ -23,16 +23,35 @@
           "200": {
             "description": "200 response",
             "headers": {
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string",
+                  "example": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+                }
+              },
               "Access-Control-Allow-Origin": {
                 "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string",
+                  "example": "GET,OPTIONS"
+                }
+              },
+              "Accept-Version": {
+                "schema": {
+                  "type": "string",
+                  "example": "*"
                 }
               }
             },
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Empty"
+                  "$ref": "#/components/schemas/Reservations"
                 }
               }
             }
@@ -50,7 +69,10 @@
             "default": {
               "statusCode": "200",
               "responseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Accept-Version": "'*'"
               }
             }
           },
@@ -65,9 +87,28 @@
           "200": {
             "description": "200 response",
             "headers": {
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string",
+                  "example": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+                }
+              },
               "Access-Control-Allow-Origin": {
                 "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string",
+                  "example": "POST,OPTIONS"
+                }
+              },
+              "Accept-Version": {
+                "schema": {
+                  "type": "string",
+                  "example": "*"
                 }
               }
             },
@@ -102,7 +143,10 @@
             "default": {
               "statusCode": "200",
               "responseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Accept-Version": "'*'"
               }
             }
           },
@@ -134,7 +178,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Empty"
+                  "$ref": "#/components/schemas/Reservations"
                 }
               }
             }
@@ -145,9 +189,10 @@
             "default": {
               "statusCode": "200",
               "responseParameters": {
-                "method.response.header.Access-Control-Allow-Methods": "'*'",
                 "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Accept-Version": "'*'"
               }
             }
           },
@@ -167,16 +212,35 @@
           "200": {
             "description": "200 response",
             "headers": {
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string",
+                  "example": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+                }
+              },
               "Access-Control-Allow-Origin": {
                 "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string",
+                  "example": "GET,OPTIONS"
+                }
+              },
+              "Accept-Version": {
+                "schema": {
+                  "type": "string",
+                  "example": "*"
                 }
               }
             },
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Empty"
+                  "$ref": "#/components/schemas/Tables"
                 }
               }
             }
@@ -194,7 +258,10 @@
             "default": {
               "statusCode": "200",
               "responseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Accept-Version": "'*'"
               }
             }
           },
@@ -209,9 +276,28 @@
           "200": {
             "description": "200 response",
             "headers": {
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string",
+                  "example": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+                }
+              },
               "Access-Control-Allow-Origin": {
                 "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string",
+                  "example": "POST,OPTIONS"
+                }
+              },
+              "Accept-Version": {
+                "schema": {
+                  "type": "string",
+                  "example": "*"
                 }
               }
             },
@@ -246,7 +332,10 @@
             "default": {
               "statusCode": "200",
               "responseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Accept-Version": "'*'"
               }
             }
           },
@@ -278,7 +367,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Empty"
+                  "$ref": "#/components/schemas/Tables"
                 }
               }
             }
@@ -311,9 +400,28 @@
           "200": {
             "description": "200 response",
             "headers": {
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string",
+                  "example": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+                }
+              },
               "Access-Control-Allow-Origin": {
                 "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string",
+                  "example": "POST,OPTIONS"
+                }
+              },
+              "Accept-Version": {
+                "schema": {
+                  "type": "string",
+                  "example": "*"
                 }
               }
             },
@@ -343,7 +451,10 @@
             "default": {
               "statusCode": "200",
               "responseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Accept-Version": "'*'"
               }
             }
           },
@@ -375,7 +486,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Empty"
+                  "$ref": "#/components/schemas/Signin"
                 }
               }
             }
@@ -418,16 +529,35 @@
           "200": {
             "description": "200 response",
             "headers": {
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string",
+                  "example": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+                }
+              },
               "Access-Control-Allow-Origin": {
                 "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string",
+                  "example": "GET,OPTIONS"
+                }
+              },
+              "Accept-Version": {
+                "schema": {
+                  "type": "string",
+                  "example": "*"
                 }
               }
             },
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Empty"
+                  "$ref": "#/components/schemas/Tables"
                 }
               }
             }
@@ -445,7 +575,10 @@
             "default": {
               "statusCode": "200",
               "responseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Accept-Version": "'*'"
               }
             }
           },
@@ -487,7 +620,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Empty"
+                  "$ref": "#/components/schemas/Tables"
                 }
               }
             }
@@ -520,9 +653,28 @@
           "200": {
             "description": "200 response",
             "headers": {
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string",
+                  "example": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+                }
+              },
               "Access-Control-Allow-Origin": {
                 "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string",
+                  "example": "POST,OPTIONS"
+                }
+              },
+              "Accept-Version": {
+                "schema": {
+                  "type": "string",
+                  "example": "*"
                 }
               }
             },
@@ -552,7 +704,10 @@
             "default": {
               "statusCode": "200",
               "responseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Accept-Version": "'*'"
               }
             }
           },
@@ -584,7 +739,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Empty"
+                  "$ref": "#/components/schemas/Signup"
                 }
               }
             }
