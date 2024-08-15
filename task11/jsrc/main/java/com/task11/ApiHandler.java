@@ -124,6 +124,14 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, Map<Strin
 			responseMap.put("body", "Internal server error.");
 		}
 
+		Map<String, String> headers = new HashMap<>();
+		headers.put("Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token");
+		headers.put("Access-Control-Allow-Origin", "*");
+		headers.put("Access-Control-Allow-Methods", "*");
+		headers.put("Accept-Version", "*");
+
+		responseMap.put("headers", headers);
+
 		return responseMap;
 	}
 
